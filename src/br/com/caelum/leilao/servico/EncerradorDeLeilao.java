@@ -14,6 +14,7 @@ public class EncerradorDeLeilao {
 	
 	public interface EnviadorDeEmail {
 		void envia(Leilao leilao);
+		void notifica(Leilao leilao);
 	}
 	
 	public EncerradorDeLeilao(InterfaceDao dao, EnviadorDeEmail carteiro) {
@@ -26,11 +27,15 @@ public class EncerradorDeLeilao {
 		List<Leilao> todosLeiloesCorrentes = dao.correntes();
 
 		for (Leilao leilao : todosLeiloesCorrentes) {
-			if (comecouSemanaPassada(leilao)) {
-				leilao.encerra();
-				total++;
-				dao.atualiza(leilao);
-				carteiro.envia(leilao);
+			try {
+				if (comecouSemanaPassada(leilao)) {
+					leilao.encerra();
+					total++;
+					dao.atualiza(leilao);
+					carteiro.envia(leilao);
+				}
+			} catch (RuntimeException e) {
+				carteiro.notifica(leilao);
 			}
 		}
 	}
